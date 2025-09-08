@@ -2,7 +2,7 @@
 ### Перейдите в папку лабораторной работы
 cd lab1-basics
 ###  Создайте свою ветку
-git checkout -b student-{ваш_номер}
+git checkout -b student-lab1-{ваш_номер}
 ### Создайте папку с решениями
 
 mkdir solutions/student-{ваш_номер}
