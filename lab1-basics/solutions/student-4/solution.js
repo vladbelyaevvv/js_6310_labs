@@ -73,20 +73,22 @@ function calculateArea(figure, ...params) {
             if(params.length === 1 && typeof(params[0]) === "number" && params[0] >= 0){
                 return Math.PI*params[0]*params[0];
             }
-            return "Некорректные параметры";
+            break;
         case 'rectangle':
             if(params.length === 2 && typeof(params[0]) === "number" && typeof(params[1]) === "number" && params[0] >= 0 && params[1] >= 0){
                 return params[0] * params[1];
             }
-            return "Некорректные параметры";
+            break;
         case 'triangle':
             if(params.length === 2 && typeof(params[0]) === "number" && typeof(params[1]) === "number" && params[0] >= 0 && params[1] >= 0){
                 return 0.5 * params[0] * params[1];
             }
-            return "Некорректные параметры";
+            break;
+            
         default:
             return "Неизвестная фигура";
     }
+    return "Некорректные параметры";
 }
 
 // 2.5 Стрелочные функции
@@ -413,7 +415,18 @@ function runTests() {
     console.assert(calculate(-10, 5, '+') === -5, "Тест калькулятора 2.3 провален (сложение с отрицательным)");
     console.assert(calculate(-10, -5, '*') === 50, "Тест калькулятора 2.3 провален (умножение отрицательных)");
     console.assert(calculate("a", "b", "+") === "Аргументы функции должны быть числами", "Тест калькулятора 2.3 провален (аргументы должны быть числовыми)");
+    console.assert(calculate("a", 10, "+") === "Аргументы функции должны быть числами", "Тест калькулятора 2.3 провален (аргументы должны быть числовыми)");
+    console.assert(calculate(10, "b", "+") === "Аргументы функции должны быть числами", "Тест калькулятора 2.3 провален (аргументы должны быть числовыми)");
     console.assert(calculate(10, 5, "~") === "Неизвестная операция", "Тест калькулятора 2.3 провален (неизвестная операция)");
+
+    console.assert(calculate(Number.MAX_VALUE, 1, '+') === Number.MAX_VALUE+1, "Тест калькулятора 2.3 провален (переполнение при сложении)");
+    console.assert(calculate(Number.MAX_VALUE, Number.MAX_VALUE, '+') === Infinity, "Тест калькулятора 2.3 провален (переполнение при сложении двух больших чисел)");
+    console.assert(calculate(Number.MAX_VALUE, 2, '-') === Number.MAX_VALUE - 2, "Тест калькулятора 2.3 провален (вычитание из максимального значения)");
+    console.assert(calculate(Number.MAX_VALUE, 1, '*') === Number.MAX_VALUE, "Тест калькулятора 2.3 провален (переполнение при умножении)");
+    console.assert(calculate(1, Number.MAX_VALUE, '*') === Number.MAX_VALUE, "Тест калькулятора 2.3 провален (переполнение при умножении с максимальным значением)");
+    console.assert(calculate(Number.MAX_VALUE, 10, "*") === Infinity, "Тест калькулятора провален (умножение максимального числа на 10)");
+    console.assert(calculate(Number.MAX_VALUE, 2, '/') === Number.MAX_VALUE / 2, "Тест калькулятора 2.3 провален (деление максимального значения)");
+
     
 
     //Тест задания 2.4 
@@ -542,6 +555,9 @@ function runTests() {
     console.assert(validateDate("05.6.2000") === false, "Тест провален: месяц должен быть из двух цифр");
     console.assert(validateDate("05-06-2000") === false, "Тест провален: разделитель должен быть точкой");
     console.assert(validateDate("05062000") === false, "Тест провален: отсутствуют разделители");
+
+    console.assert(validateDate("sdaasdsad") === false, "Тест провален: полностью некорректная строка");
+    console.assert(validateDate("") === false, "Тест провален: пустая строка");
     
     console.log("Все тесты пройдены! ✅");
 }
