@@ -30,10 +30,9 @@ class Vehicle {
         const yearNow = new Date().getFullYear();
         if(newYear > yearNow){
             console.error("Год выпуска не может быть больше текущего");
+            return;
         }
-        else{
-            this._year = newYear;
-        }
+        this._year = newYear;
     }
 
     get year() {
@@ -60,6 +59,10 @@ class Car extends Vehicle {
     // Добавьте новое свойство numDoors (количество дверей).
     constructor(make, model, year, numDoors) {
         super(make, model, year);
+        if (!Number.isInteger(numDoors) || numDoors <= 0) {
+            console.error("numDoors должен быть положительным целым числом");
+            numDoors = 4; // дефолт
+        }
         this.numDoors = numDoors;
     }
 
@@ -82,6 +85,9 @@ class ElectricCar extends Car {
     // Добавьте новое свойство batteryCapacity (емкость батареи в кВт·ч).
     constructor(make, model, year, numDoors, batteryCapacity) {
         super(make, model, year, numDoors);
+        if (typeof batteryCapacity !== "number" || !Number.isFinite(batteryCapacity) || batteryCapacity <= 0) {
+            throw new TypeError("batteryCapacity должен быть положительным числом");
+        }
         this.batteryCapacity = batteryCapacity;
     }
 
@@ -128,6 +134,10 @@ function runTests() {
     const vehicle = new Vehicle('Toyota', 'Camry', 2015);
     vehicle.displayInfo();
     console.log(`Возраст: ${vehicle.age} лет` + "\n");
+
+    const oldYear = vehicle.year;
+    vehicle.year = new Date().getFullYear() + 1; // будущий
+    console.assert(vehicle.year === oldYear, "Сеттер year не должен принимать будущий год");
     
     const car = new Car('Honda', 'Civic', 2018, 4);
     car.displayInfo();
@@ -135,6 +145,9 @@ function runTests() {
     console.log(Vehicle.compareAge(vehicle, car) + "\n");
     console.assert(Vehicle.compareAge(vehicle, car) === (vehicle.age - car.age), "Тест функции compareAge");
 
+    const d1 = Vehicle.compareAge(vehicle, car);
+    const d2 = Vehicle.compareAge(car, vehicle);
+    console.assert(d1 === -d2, "compareAge должен быть антисимметричным");
     
     const electricCar = new ElectricCar('Tesla', 'Model 3', 2020, 4, 75);
     electricCar.displayInfo();
@@ -147,12 +160,22 @@ function runTests() {
 
     
     const createCarFactory = createVehicleFactory(Car);
-    const myNewCar = createCarFactory('BMW', 'X5', 2022);
+    const myNewCar = createCarFactory('BMW', 'X5', 2022, 4);
     console.log('Создан новый автомобиль:');
     myNewCar.displayInfo();
     
     console.log('Всего создано транспортных средств:', Vehicle.getTotalVehicles());
+
+    const beforeCount = Vehicle.getTotalVehicles();
+    const oneMore = new Car('VW', 'Golf', 2019, 4); // создаём ещё одно ТС
+    const afterCount = Vehicle.getTotalVehicles();
+    console.assert(afterCount === beforeCount + 1, "vehicleCount должен увеличиваться при создании нового ТС");
+    console.log('Всего создано транспортных средств (после добавления):', Vehicle.getTotalVehicles());
     
+
+    const badDoors = new Car('Test', 'Doors', 2017, -1); // станет 4 по дефолту
+    console.assert(badDoors.numDoors === 4, "numDoors должен быть положительным; ставим дефолт 4");
+
     console.log('Все тесты пройдены! ✅');
 }
 
