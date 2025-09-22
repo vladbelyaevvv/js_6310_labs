@@ -21,7 +21,7 @@ class Vehicle {
     // Добавьте геттер age, который возвращает возраст транспортного средства 
     // (текущий год минус год выпуска). Используйте new Date().getFullYear().
     get age() {
-        var yearNow = new Date().getFullYear();
+        let yearNow = new Date().getFullYear();
         return yearNow - this.year;
     }
 
