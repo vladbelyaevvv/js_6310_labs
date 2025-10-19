@@ -1,5 +1,5 @@
 import React from 'react';
-import './Button.css';
+import styles from './Button.module.css';
 
 export interface ButtonProps {
   variant?: 'primary' | 'secondary';
@@ -16,9 +16,16 @@ export const Button: React.FC<ButtonProps> = ({
   onClick,
   children,
 }) => {
+  const className = [
+    styles.btn,
+    styles[`btn--${variant}`],
+    styles[`btn--${size}`],
+    disabled ? styles.disabled : '',
+  ].join(' ');
+
   return (
     <button
-      className={`btn btn--${variant} btn--${size}`}
+      className={className}
       disabled={disabled}
       onClick={onClick}
     >

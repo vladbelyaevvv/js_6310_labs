@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import './App.css'
 import { Button, Card } from '@my-app/ui-library';
+import '@my-app/ui-library/style.css'
 
 function App() {
   const [count, setCount] = useState(0)
