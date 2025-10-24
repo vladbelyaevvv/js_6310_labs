@@ -37,13 +37,13 @@
 }
 
 .app-main {
-  max-width: 1200px;
+  width: 100%;
   margin: 0 auto;
   padding: 0 1rem 2rem;
 }
 
 .app-footer {
-  max-width: 1200px;
+  width: 100%;
   margin: 2rem auto 0;
   padding: 0 1rem 2rem;
 }
