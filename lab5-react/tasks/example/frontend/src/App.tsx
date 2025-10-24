@@ -1,7 +1,8 @@
 import { useState } from 'react'
+
 import './App.css'
-import { Button, Card } from '@my-app/ui-library';
 import '@my-app/ui-library/style.css'
+import { Button, Card } from '@my-app/ui-library'
 
 function App() {
   const [count, setCount] = useState(0)
@@ -38,7 +39,7 @@ function App() {
         </div>
       </Card>
     </div>
-  );
+  )
 }
 
 export default App
