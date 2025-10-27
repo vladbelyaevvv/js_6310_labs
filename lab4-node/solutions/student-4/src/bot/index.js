@@ -46,9 +46,11 @@ bot.catch((err, ctx) => {
 import { registerReportHandler } from './commands/report.js';
 import { registerStatusHandler } from './commands/status.js';
 import { registerRatingHandler } from './commands/rating.js';
+import { registerResolveHandler } from './commands/resolve.js';
 registerReportHandler(bot);
 registerStatusHandler(bot);
 registerRatingHandler(bot);
+registerResolveHandler(bot);
 
 //запуск бота
 bot.launch();
