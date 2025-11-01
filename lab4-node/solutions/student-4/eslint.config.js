@@ -25,4 +25,13 @@ export default defineConfig([
       ]
     },
   },
+  {
+    files: ['tests/**/*.js'],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+        ...globals.jest, // добавляем jest-глобалы: test, expect, describe и т.д.
+      },
+    },
+  },
 ]);

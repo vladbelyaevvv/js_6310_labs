@@ -1,6 +1,12 @@
 import { saveReport } from '../repo/reports.js';
 
-const TYPES = ['водоснабжение', 'отопление', 'электроснабжение'];
+import {
+  TYPES,
+  isValidType,
+  isValidDescription,
+  isValidAddress,
+  isValidContact
+} from '../../validators/reportValidator.js';
 
 function resetSession(ctx) {
   ctx.session.state = 'idle';
@@ -77,102 +83,97 @@ export function registerReportHandler(bot) {
 
     // FSM
     switch (state) {
-      case 'chooseType': {
-        const v = text.toLowerCase();
-        if (!TYPES.includes(v)) {
-          return ctx.reply(
-            'Некорректный тип. Допустимо: водоснабжение / отопление / электроснабжение.'
-          );
-        }
-        ctx.session.data.type = v;
+    case 'chooseType': {
+      if (!isValidType(text)) {
+        return ctx.reply(
+          `Некорректный тип. Допустимо: ${TYPES.join(' / ')}.`
+        );
+      }
+      ctx.session.data.type = text.toLowerCase();
+      ctx.session.state = 'describe';
+      return askDescribe(ctx);
+    }
+
+    case 'describe': {
+      if (!isValidDescription(text)) {
+        return ctx.reply('Слишком коротко. Опишите проблему подробнее (≥ 5 символов).');
+      }
+      ctx.session.data.description = text;
+      ctx.session.state = 'photoOrSkip';
+      return askPhotoOrSkip(ctx);
+    }
+
+    case 'photoOrSkip': {
+      // Пользователь решил пропустить фото
+      if (text.toLowerCase() === 'пропустить') {
+        ctx.session.data.photoFileId = null;
+        ctx.session.state = 'address';
+        return askAddress(ctx);
+      }
+      // Если это был текст (а не фото) — попросим фото или "пропустить"
+      return ctx.reply('Пришлите фото или напишите "пропустить".');
+    }
+
+    case 'address': {
+      if (!isValidAddress(text)) {
+        return ctx.reply('Адрес слишком короткий. Укажите корректный адрес (≥ 3 символов).');
+      }
+      ctx.session.data.address = text;
+      ctx.session.state = 'contact';
+      return askContact(ctx);
+    }
+
+    case 'contact': {
+      if (!isValidContact(text)) {
+        return ctx.reply('Укажите телефон (7+ цифр) или валидный email.');
+      }
+      ctx.session.data.contact = text;
+      ctx.session.state = 'confirm';
+      return askConfirm(ctx);
+    } 
+
+    case 'confirm': {
+      const v = text.toLowerCase();
+
+      if (v === 'подтвердить') {
+        // Здесь можно сохранить в БД/файл. Пока — просто сгенерим ID.
+        const complaintId = Math.random().toString(36).slice(2, 8);
+        ctx.session.data.id = complaintId;
+        ctx.session.data.status = 'sent';
+        saveReport(ctx.chat.id, {...ctx.session.data});
+        await ctx.reply(
+          `✅ Заявка отправлена! Номер: ${complaintId}\nПроверить: /status`
+        );
+        resetSession(ctx);
+        return;
+      }
+
+      // Исправления по полям
+      if (v === 'исправить тип') {
+        ctx.session.state = 'chooseType';
+        return askType(ctx);
+      }
+      if (v === 'исправить описание') {
         ctx.session.state = 'describe';
         return askDescribe(ctx);
       }
-
-      case 'describe': {
-        if (text.length < 5) {
-          return ctx.reply('Слишком коротко. Опишите проблему подробнее.');
-        }
-        ctx.session.data.description = text;
+      if (v === 'исправить фото') {
         ctx.session.state = 'photoOrSkip';
         return askPhotoOrSkip(ctx);
       }
-
-      case 'photoOrSkip': {
-        // Пользователь решил пропустить фото
-        if (text.toLowerCase() === 'пропустить') {
-          ctx.session.data.photoFileId = null;
-          ctx.session.state = 'address';
-          return askAddress(ctx);
-        }
-        // Если это был текст (а не фото) — попросим фото или "пропустить"
-        return ctx.reply('Пришлите фото или напишите "пропустить".');
+      if (v === 'исправить адрес') {
+        ctx.session.state = 'address';
+        return askAddress(ctx);
       }
-
-      case 'address': {
-        if (text.length < 3) {
-          return ctx.reply('Адрес слишком короткий. Укажите корректный адрес.');
-        }
-        ctx.session.data.address = text;
+      if (v === 'исправить контакт') {
         ctx.session.state = 'contact';
         return askContact(ctx);
       }
 
-      case 'contact': {
-        // Простая валидация: телефон (хотя бы 7 цифр) или email (очень базово)
-        const looksLikePhone = text.replace(/\D/g, '').length >= 7;
-        const looksLikeEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(text);
-
-        if (!looksLikePhone && !looksLikeEmail) {
-          return ctx.reply('Укажите телефон (7+ цифр) или валидный email.');
-        }
-        ctx.session.data.contact = text;
-        ctx.session.state = 'confirm';
-        return askConfirm(ctx);
-      }
-
-      case 'confirm': {
-        const v = text.toLowerCase();
-
-        if (v === 'подтвердить') {
-          // Здесь можно сохранить в БД/файл. Пока — просто сгенерим ID.
-          const complaintId = Math.random().toString(36).slice(2, 8);
-          ctx.session.data.id = complaintId;
-          ctx.session.data.status = 'sent';
-          saveReport(ctx.chat.id, {...ctx.session.data});
-          await ctx.reply(
-            `✅ Заявка отправлена! Номер: ${complaintId}\nПроверить: /status`
-          );
-          resetSession(ctx);
-          return;
-        }
-
-        // Исправления по полям
-        if (v === 'исправить тип') {
-          ctx.session.state = 'chooseType';
-          return askType(ctx);
-        }
-        if (v === 'исправить описание') {
-          ctx.session.state = 'describe';
-          return askDescribe(ctx);
-        }
-        if (v === 'исправить фото') {
-          ctx.session.state = 'photoOrSkip';
-          return askPhotoOrSkip(ctx);
-        }
-        if (v === 'исправить адрес') {
-          ctx.session.state = 'address';
-          return askAddress(ctx);
-        }
-        if (v === 'исправить контакт') {
-          ctx.session.state = 'contact';
-          return askContact(ctx);
-        }
-
-        return ctx.reply(
-          'Напишите "подтвердить" или "исправить тип/описание/фото/адрес/контакт".'
-        );
-      }
+      return ctx.reply(
+        'Напишите "подтвердить" или "исправить тип/описание/фото/адрес/контакт".'
+      );
+    }
     }
   });
 }

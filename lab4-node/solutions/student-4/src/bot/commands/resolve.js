@@ -32,7 +32,9 @@ export function registerResolveHandler(bot) {
           res.chatId,
           `📢 Обновление по вашей заявке #${id}:\n${measures}`
         );
-      } catch {}
+      } catch(err) {
+        console.warn('Не смог отправить уведомление пользователю:', err?.message);
+      }
     }
   });
 }
